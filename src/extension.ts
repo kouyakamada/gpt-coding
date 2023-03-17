@@ -5,18 +5,29 @@ import * as vscode from 'vscode';
 import { Configuration, OpenAIApi } from "openai";
 import * as dotenv from "dotenv";
 import { arrayBuffer } from 'stream/consumers';
+import axios, { isCancel, AxiosError } from 'axios';
 
 dotenv.config();
 const configuration = new Configuration({
 	apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
+
+const instance = axios.create({
+	baseURL: "https://api.openai.com/v1",
+	headers: {
+		"Content-Type": "application/json",
+		"Authorization": "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"
+	},
+	timeout: 2000,
+});
+
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "gpt-coding" is now active!');
 	let disposable = vscode.commands.registerCommand('gpt-coding.startcoding', () => {
 		vscode.window.showInformationMessage('Hello World from gpt-coding!');
 		const editor = vscode.window.activeTextEditor;
+		call_gpt("test");
 		if (editor) {
 			const document = editor.document;
 			const text = String(document.getText());
@@ -63,12 +74,43 @@ function make_prompt(order: string) {
 }
 
 async function call_gpt(prompt: string) {
-	const completion = await openai.createCompletion({
-		model: "gpt-3.5-turbo-0301",
-		prompt: prompt,
-	});
-	return completion.data.choices[0].text;
+	instance.post("/chat/completions",
+		{
+			model: "gpt-3.5-turbo-0301",
+			messages: [{ "role": "user", "content": "Say this is a test!" }],
+			temperature: 0.7
+		});
 
+	axios({
+		method: 'post',
+		url: 'https://api.openai.com/v1/chat/completions',
+		proxy: {
+			protocol: 'http',
+			host: 'http://gproxy.toppan.co.jp',
+			// hostname: '127.0.0.1' // Takes precedence over 'host' if both are defined
+			port: 8088,
+			auth: {
+				username: 'koya.kamada',
+				password: 'kouya0301'
+			}
+		},
+		headers: {
+			"Content-Type": "application/json",
+			"Authorization": "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"
+		},
+		data: {
+			model: "gpt-3.5-turbo-0301",
+			messages: [{ "role": "user", "content": "Say this is a test!" }],
+			temperature: 0.7
+		}
+	}).then(function (response) {
+		console.log(response.data);
+	});
+	//const openai = new OpenAIApi(configuration);
+	//const completion = await openai.createCompletion({
+	//	model: "gpt-3.5-turbo-0301",
+	//	prompt: prompt,
+	//});
 }
 
 
