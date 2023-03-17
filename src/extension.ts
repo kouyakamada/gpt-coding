@@ -28,6 +28,7 @@ export function activate(context: vscode.ExtensionContext) {
 		if (editor) {
 			const document = editor.document;
 			const text = String(document.getText());
+			console.log(text.indexOf("\n"));
 			const orders = extract_order(text);
 			console.log(orders);
 			if (orders) {
@@ -94,7 +95,7 @@ async function call_gpt(prompt: string) {
 			url: 'https://api.openai.com/v1/chat/completions',
 			headers: {
 				"Content-Type": "application/json",
-				"Authorization": "Bearer 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"
+				"Authorization": "Bearer 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"
 			},
 			data: {
 				model: "gpt-3.5-turbo-0301",
@@ -109,6 +110,7 @@ async function call_gpt(prompt: string) {
 			//console.log(code);
 			return resolve(code);
 		}).catch(function (response) {
+			console.log(response);
 			return error("api error!");
 		});
 	});
