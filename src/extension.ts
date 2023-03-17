@@ -25,13 +25,14 @@ export function activate(context: vscode.ExtensionContext) {
 		if (editor) {
 			console.log(api_key);
 			const document = editor.document;
+			const language = String(document.languageId);
 			const text = String(document.getText());
 			const orders = extract_order(text);
 			console.log(orders);
 			if (orders) {
 				orders.forEach(async (value) => {
 					console.log(value);
-					const prompt = String(make_prompt(value));
+					const prompt = String(make_prompt(language ,value));
 					console.log(prompt);
 					var position= findTargetPosition(text,value);
 					var start_pos = new vscode.Position(position.startLine,position.startChar);
@@ -64,13 +65,13 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 function extract_order(text: string) {
-	var orders = text.match(/gpt-coding\[.*\]{[\s\S]*}/g);
+	var orders = text.match(/gpt-coding{[\s\S]*}/g);
 	return orders;
 }
 
-function make_prompt(order: string) {
+function make_prompt(language:string, order: string) {
 	if (order) {
-		let language = String(order.match(/\[.*\]/)).replace(/\[/, "").replace(/\]/, "");
+		//let language = String(order.match(/\[.*\]/)).replace(/\[/, "").replace(/\]/, "");
 		let prompt
 			= String(language)
 			+ "で以下の仕様のコードを記述してください。またどのような挙動をしているか分かりやすいように細かくコメントを書いてください。\n仕様:"
