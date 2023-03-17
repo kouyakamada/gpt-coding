@@ -2,23 +2,19 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import { Configuration, OpenAIApi } from "openai";
 import * as dotenv from "dotenv";
 import { arrayBuffer } from 'stream/consumers';
 import axios, { isCancel, AxiosError } from 'axios';
 import { resolve } from 'path';
+import * as child_process from 'child_process';
 
 dotenv.config();
 
 var url = require('url');
 var https = require('https');
 const HttpsProxyAgent = require('https-proxy-agent');
-var proxy = "http://koya.kamada:kouya0301@gproxy.toppan.co.jp:8088";
-
-const configuration = new Configuration({
-	apiKey: process.env.OPENAI_API_KEY,
-});
-
+var proxy = process.env["HTTP_PROXY"];
+var api_key = process.env["openai-apikey"];
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "gpt-coding" is now active!');
@@ -26,6 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('Hello World from gpt-coding!');
 		const editor = vscode.window.activeTextEditor;
 		if (editor) {
+			console.log(api_key);
 			const document = editor.document;
 			const text = String(document.getText());
 			console.log(text.indexOf("\n"));
@@ -44,7 +41,7 @@ export function activate(context: vscode.ExtensionContext) {
 							console.log(editpostion);
 							editor.edit(editBuilder => {
 								//editBuilder.delete()
-								editBuilder.replace(new vscode.Position(text.indexOf(value), 0), String(resolve));
+								editBuilder.replace(new vscode.Position(text.indexOf(value), 0), String("{" + resolve + "}"));
 							});
 						}).catch(error => {
 							console.error(error);
@@ -64,7 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 function extract_order(text: string) {
-	var orders = text.match(/gpt-coding\[.*\]{.*}/g);
+	var orders = text.match(/gpt-coding\[.*\](.*)/g);
 	return orders;
 }
 
@@ -73,7 +70,7 @@ function make_prompt(order: string) {
 		let language = String(order.match(/\[.*\]/)).replace(/\[/, "").replace(/\]/, "");
 		let prompt
 			= String(language)
-			+ "で以下の仕様のコードを記述してください。\n仕様:"
+			+ "で以下の仕様のコードを記述してください。ただしコードとコメント以外の要素は不要です。\n仕様:"
 			+ String(order.match(/{.*}/)).replace(/{/, "").replace(/}/, "");
 		return prompt;
 	}
@@ -106,40 +103,61 @@ async function call_gpt(prompt: string) {
 	var options = url.parse(endpoint);
 
 	// create an instance of the `HttpsProxyAgent` class with the proxy server information
-	var agent = new HttpsProxyAgent(proxy);
-	options.agent = agent;
-
-	return new Promise((resolve, error) => {
-		axios({
-			method: 'post',
-			url: 'https://api.openai.com/v1/chat/completions',
-			headers: {
-				"Content-Type": "application/json",
-				"Authorization": ""
-			},
-			data: {
-				model: "gpt-3.5-turbo-0301",
-				messages: [{ "role": "user", "content": prompt }],
-				temperature: 0.7
-			},
-			proxy: false,
-			httpsAgent: agent
-		}).then(function (response) {
-			//console.log(String(response.data.choices[0].message.content).trim());
-			let code = response.data.choices[0].message.content.trim();
-			//console.log(code);
-			return resolve(code);
-		}).catch(function (response) {
-			console.log(response);
-			return error("api error!");
+	try{
+		var agent = new HttpsProxyAgent(proxy);
+		options.agent = agent;
+		return new Promise((resolve, error) => {
+			axios({
+				method: 'post',
+				url: 'https://api.openai.com/v1/chat/completions',
+				headers: {
+					"Content-Type": "application/json",
+					"Authorization": "Bearer " + api_key
+				},
+				data: {
+					model: "gpt-3.5-turbo-0301",
+					messages: [{ "role": "user", "content": prompt }],
+					temperature: 0.7
+				},
+				proxy: false,
+				httpsAgent: agent
+			}).then(function (response) {
+				//console.log(String(response.data.choices[0].message.content).trim());
+				let code = response.data.choices[0].message.content.trim();
+				//console.log(code);
+				return resolve(code);
+			}).catch(function (response) {
+				console.log(response);
+				return error("api error!");
+			});
 		});
-	});
-	//const openai = new OpenAIApi(configuration);
-	//const completion = await openai.createCompletion({
-	//	model: "gpt-3.5-turbo-0301",
-	//	prompt: prompt,
-	//});
-}
+	}catch{
+		return new Promise((resolve, error) => {
+			axios({
+				method: 'post',
+				url: 'https://api.openai.com/v1/chat/completions',
+				headers: {
+					"Content-Type": "application/json",
+					"Authorization": "Bearer " + api_key
+				},
+				data: {
+					model: "gpt-3.5-turbo-0301",
+					messages: [{ "role": "user", "content": prompt }],
+					temperature: 0.7
+				},
+			}).then(function (response) {
+				//console.log(String(response.data.choices[0].message.content).trim());
+				let code = response.data.choices[0].message.content.trim();
+				//console.log(code);
+				return resolve(code);
+			}).catch(function (response) {
+				console.log(response);
+				return error(response);
+			});
+		});
+	}
+}	
 
 
-export function deactivate() { }
+
+export function deactivate() {}
