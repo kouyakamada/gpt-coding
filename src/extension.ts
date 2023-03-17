@@ -6,19 +6,17 @@ import { Configuration, OpenAIApi } from "openai";
 import * as dotenv from "dotenv";
 import { arrayBuffer } from 'stream/consumers';
 import axios, { isCancel, AxiosError } from 'axios';
+import { resolve } from 'path';
 
 dotenv.config();
+
+var url = require('url');
+var https = require('https');
+const HttpsProxyAgent = require('https-proxy-agent');
+var proxy = "http://koya.kamada:kouya0301@gproxy.toppan.co.jp:8088";
+
 const configuration = new Configuration({
 	apiKey: process.env.OPENAI_API_KEY,
-});
-
-const instance = axios.create({
-	baseURL: "https://api.openai.com/v1",
-	headers: {
-		"Content-Type": "application/json",
-		"Authorization": "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"
-	},
-	timeout: 2000,
 });
 
 
@@ -27,7 +25,6 @@ export function activate(context: vscode.ExtensionContext) {
 	let disposable = vscode.commands.registerCommand('gpt-coding.startcoding', () => {
 		vscode.window.showInformationMessage('Hello World from gpt-coding!');
 		const editor = vscode.window.activeTextEditor;
-		call_gpt("test");
 		if (editor) {
 			const document = editor.document;
 			const text = String(document.getText());
@@ -38,11 +35,20 @@ export function activate(context: vscode.ExtensionContext) {
 					console.log(value);
 					let prompt = String(make_prompt(value));
 					console.log(prompt);
-					let code = String(await call_gpt(prompt));
-					console.log(code);
-					//editor.edit(editBuilder => {
-					//	editBuilder.replace(new vscode.Position(text.indexOf(order), order.length), code);
-					//});
+					call_gpt(prompt)
+						.then(resolve => {
+							console.log("code:");
+							console.log(resolve);
+							let editpostion = text.indexOf("\n");
+							console.log(editpostion);
+							editor.edit(editBuilder => {
+								//editBuilder.delete()
+								editBuilder.replace(new vscode.Position(text.indexOf(value), 0), String(resolve));
+							});
+						}).catch(error => {
+							console.error(error);
+						});;
+
 				});
 			} else {
 				console.log("not order");
@@ -74,37 +80,37 @@ function make_prompt(order: string) {
 }
 
 async function call_gpt(prompt: string) {
-	instance.post("/chat/completions",
-		{
-			model: "gpt-3.5-turbo-0301",
-			messages: [{ "role": "user", "content": "Say this is a test!" }],
-			temperature: 0.7
-		});
+	// HTTPS endpoint for the proxy to connect to
+	var endpoint = process.argv[2] || 'https://api.openai.com/v1/chat/completions';
+	var options = url.parse(endpoint);
 
-	axios({
-		method: 'post',
-		url: 'https://api.openai.com/v1/chat/completions',
-		proxy: {
-			protocol: 'http',
-			host: 'http://gproxy.toppan.co.jp',
-			// hostname: '127.0.0.1' // Takes precedence over 'host' if both are defined
-			port: 8088,
-			auth: {
-				username: 'koya.kamada',
-				password: 'kouya0301'
-			}
-		},
-		headers: {
-			"Content-Type": "application/json",
-			"Authorization": "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"
-		},
-		data: {
-			model: "gpt-3.5-turbo-0301",
-			messages: [{ "role": "user", "content": "Say this is a test!" }],
-			temperature: 0.7
-		}
-	}).then(function (response) {
-		console.log(response.data);
+	// create an instance of the `HttpsProxyAgent` class with the proxy server information
+	var agent = new HttpsProxyAgent(proxy);
+	options.agent = agent;
+
+	return new Promise((resolve, error) => {
+		axios({
+			method: 'post',
+			url: 'https://api.openai.com/v1/chat/completions',
+			headers: {
+				"Content-Type": "application/json",
+				"Authorization": "Bearer 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"
+			},
+			data: {
+				model: "gpt-3.5-turbo-0301",
+				messages: [{ "role": "user", "content": prompt }],
+				temperature: 0.7
+			},
+			proxy: false,
+			httpsAgent: agent
+		}).then(function (response) {
+			//console.log(String(response.data.choices[0].message.content).trim());
+			let code = response.data.choices[0].message.content.trim();
+			//console.log(code);
+			return resolve(code);
+		}).catch(function (response) {
+			return error("api error!");
+		});
 	});
 	//const openai = new OpenAIApi(configuration);
 	//const completion = await openai.createCompletion({
