@@ -14,3 +14,10 @@ response = openai.ChatCompletion.create(
     ],
 )
 print(response.choices[0]["message"]["content"].strip())
+
+
+
+
+# "Hello"と5回出力する
+for i in range(5): # 5回繰り返す
+    print("Hello") # "Hello"を出力する
