@@ -80,6 +80,26 @@ function make_prompt(order: string) {
 
 }
 
+function get_position(document: string, target: string) {
+	let target_index = document.indexOf(target);
+	let target_start = [0, 0];
+	let target_end = [0, 0];
+	let index = document.indexOf("\n");
+	while (index !== -1 || index >= target_index) {
+		target_start[0] += 1;
+		index = document.indexOf("\n", index + 1);
+	}
+	while (document.charAt(index) !== "") {
+		target_start[1] = index - target_index;
+	}
+	index = target.indexOf("\n");
+	while (index !== -1) {
+		target_end[0] += 1;
+		index = target.indexOf("\n", index + 1);
+	}
+
+}
+
 async function call_gpt(prompt: string) {
 	// HTTPS endpoint for the proxy to connect to
 	var endpoint = process.argv[2] || 'https://api.openai.com/v1/chat/completions';
@@ -95,7 +115,7 @@ async function call_gpt(prompt: string) {
 			url: 'https://api.openai.com/v1/chat/completions',
 			headers: {
 				"Content-Type": "application/json",
-				"Authorization": "Bearer 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"
+				"Authorization": ""
 			},
 			data: {
 				model: "gpt-3.5-turbo-0301",
