@@ -1,8 +1,11 @@
 {
   "name": "gpt-coding",
   "displayName": "gpt-coding",
-  "description": "",
-  "version": "0.0.1",
+  "description": "GPT generate the code and insert it automatically",
+  "version": "0.0.2",
+  "publisher" : "kouya.kamada",
+  "keywords":["coding","GPT","CHATGPT","AI"],
+  "icon": "https://raw.githubusercontent.com/kouyakamada/gpt-coding/main/icon/brain.png",
   "engines": {
     "vscode": "^1.54.0"
   },
