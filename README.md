@@ -22,7 +22,7 @@ SET openai-apikey=sk-xxxxxxxxxxxxxxxxxxxxxxxx
 ```
 gpt-coding{要件}
 ```
- のフォーマットで入力後 "gpt coding start"コマンドを実行
+ のフォーマットで入力後 "gpt coding start"コマンドを実行 または ctrl+F1
 
 gpt3が生成したコードが自動で入力されます
 

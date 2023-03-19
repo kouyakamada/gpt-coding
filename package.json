@@ -5,7 +5,7 @@
   "version": "0.0.2",
   "publisher" : "kouya.kamada",
   "keywords":["coding","GPT","CHATGPT","AI"],
-  "icon": "https://raw.githubusercontent.com/kouyakamada/gpt-coding/main/icon/brain.png",
+  "icon": "icon/brain.png",
   "engines": {
     "vscode": "^1.54.0"
   },
@@ -21,6 +21,14 @@
       {
         "command": "gpt-coding.startcoding",
         "title": "gpt coding start"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "gpt-coding.startcoding",
+        "key": "ctrl+f1",
+        "mac": "cmd+f1",
+        "when": "editorTextFocus"
       }
     ]
   },
