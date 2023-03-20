@@ -10,7 +10,7 @@
     "CHATGPT",
     "AI"
   ],
-  "icon": "icon/brain.png",
+  "icon": "images/icon/brain.png",
   "engines": {
     "vscode": "^1.54.0"
   },
@@ -34,6 +34,21 @@
         "key": "ctrl+f1",
         "mac": "cmd+f1",
         "when": "editorTextFocus"
+      }
+    ],
+    "configuration": [
+      {
+        "title": "GPT-Coding",
+        "properties": {
+          "gpt-coding.OPENAI-APIKEY": {
+            "type": "string",
+            "default": ""
+          },
+          "gpt-coding.HTTP-PROXY": {
+            "type": "string",
+            "default": "http://username:password@proxy.addr:prot"
+          }
+        }
       }
     ]
   },

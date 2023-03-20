@@ -14,8 +14,9 @@ dotenv.config();
 var url = require('url');
 var https = require('https');
 const HttpsProxyAgent = require('https-proxy-agent');
-var proxy = process.env["HTTP_PROXY"];
-var api_key = process.env["openai-apikey"];
+const config = vscode.workspace.getConfiguration('gpt-coding');
+var api_key = config.get<String>("OPENAI-APIKEY");
+var proxy = config.get<String>("HTTP-PROXY");
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "gpt-coding" is now active!');
@@ -23,8 +24,8 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.showInformationMessage('gpt-coding is processing!');
 		const editor = vscode.window.activeTextEditor;
 		if (editor) {
-			console.log(api_key);
-			console.log(proxy);
+			//vscode.window.showInformationMessage(String(api_key));
+			//console.log(proxy);
 			const document = editor.document;
 			const language = String(document.languageId);
 			const text = String(document.getText());
@@ -128,34 +129,38 @@ async function call_gpt(prompt: string) {
 				//console.log(code);
 				return resolve(code);
 			}).catch(function (response) {
-				vscode.window.showInformationMessage('Trying with proxy...');
+				vscode.window.showInformationMessage('Try using a proxy...');
 			});
 		});
 	} catch {
-		vscode.window.showInformationMessage('Trying with proxy...');
-		return new Promise((resolve, error) => {
-			axios({
-				method: 'post',
-				url: 'https://api.openai.com/v1/chat/completions',
-				headers: {
-					"Content-Type": "application/json",
-					"Authorization": "Bearer " + api_key
-				},
-				data: {
-					model: "gpt-3.5-turbo",
-					messages: [{ "role": "user", "content": prompt }],
-					temperature: 0.7
-				},
-			}).then(function (response) {
-				//console.log(String(response.data.choices[0].message.content).trim());
-				let code = response.data.choices[0].message.content.trim();
-				//console.log(code);
-				return resolve(code);
-			}).catch(function (response) {
-				vscode.window.showInformationMessage('API call ERROR!');
-				return error(response);
+		vscode.window.showInformationMessage('Try using a proxy...');
+		try {
+			return new Promise((resolve, error) => {
+				axios({
+					method: 'post',
+					url: 'https://api.openai.com/v1/chat/completions',
+					headers: {
+						"Content-Type": "application/json",
+						"Authorization": "Bearer " + api_key
+					},
+					data: {
+						model: "gpt-3.5-turbo",
+						messages: [{ "role": "user", "content": prompt }],
+						temperature: 0.7
+					},
+				}).then(function (response) {
+					//console.log(String(response.data.choices[0].message.content).trim());
+					let code = response.data.choices[0].message.content.trim();
+					//console.log(code);
+					return resolve(code);
+				}).catch(function (response) {
+					return error(response);
+				});
 			});
-		});
+		} catch {
+			vscode.window.showInformationMessage('API call ERROR!');
+		}
+
 	}
 }
 

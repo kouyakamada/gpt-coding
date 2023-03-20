@@ -2,20 +2,13 @@
 
 ## 使い方
 
-**0.プロキシ環境下で使う場合は環境変数に設定**  
-  
-``` 
-SETX HTTP_PROXY=http://proxy_addr:port or http://username:password@proxy_addr:port
-SETX HTTPS_PROXY=http://proxy_addr:port or http://username:password@proxy_addr:port
-```  
-
-**1.環境変数[openai-apikey]に自分のapikeyを設定**  
+**1.初期設定**  
   
 [OPENAI-API](https://openai.com/blog/openai-api)にアクセスし、アカウント作成  
-API-KEYを取得し環境変数に設定
-```
-SETX openai-apikey=sk-xxxxxxxxxxxxxxxxxxxxxxxx
-```
+
+API-KEYを取得し設定
+
+プロキシ環境下で使用する場合はプロキシアドレスの設定
 
 **2.コーディング**  
    
