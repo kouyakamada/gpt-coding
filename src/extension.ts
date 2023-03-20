@@ -24,6 +24,7 @@ export function activate(context: vscode.ExtensionContext) {
 		const editor = vscode.window.activeTextEditor;
 		if (editor) {
 			console.log(api_key);
+			console.log(proxy);
 			const document = editor.document;
 			const language = String(document.languageId);
 			const text = String(document.getText());
@@ -32,11 +33,11 @@ export function activate(context: vscode.ExtensionContext) {
 			if (orders) {
 				orders.forEach(async (value) => {
 					console.log(value);
-					const prompt = String(make_prompt(language ,value));
+					const prompt = String(make_prompt(language, value));
 					console.log(prompt);
-					var position= findTargetPosition(text,value);
-					var start_pos = new vscode.Position(position.startLine,position.startChar);
-					var end_pos   = new vscode.Position(position.endLine, position.endChar);
+					var position = findTargetPosition(text, value);
+					var start_pos = new vscode.Position(position.startLine, position.startChar);
+					var end_pos = new vscode.Position(position.endLine, position.endChar);
 					call_gpt(prompt)
 						.then(resolve => {
 							console.log("code:");
@@ -69,7 +70,7 @@ function extract_order(text: string) {
 	return orders;
 }
 
-function make_prompt(language:string, order: string) {
+function make_prompt(language: string, order: string) {
 	if (order) {
 		//let language = String(order.match(/\[.*\]/)).replace(/\[/, "").replace(/\]/, "");
 		let prompt
@@ -81,7 +82,7 @@ function make_prompt(language:string, order: string) {
 
 }
 
-function findTargetPosition(document:string, target:string) {
+function findTargetPosition(document: string, target: string) {
 	const startIndex = document.indexOf(target);
 	const endIndex = startIndex + target.length - 1;
 	const startLine = document.substr(0, startIndex).split('\n').length;
@@ -90,12 +91,12 @@ function findTargetPosition(document:string, target:string) {
 	const endChar = endIndex - document.lastIndexOf('\n', endIndex - 1);
 	console.log(startLine, startChar, endLine, endChar);
 	return {
-	  startLine: startLine,
-	  startChar: startChar,
-	  endLine: endLine,
-	  endChar: endChar
+		startLine: startLine,
+		startChar: startChar,
+		endLine: endLine,
+		endChar: endChar
 	};
-  }
+}
 
 async function call_gpt(prompt: string) {
 	// HTTPS endpoint for the proxy to connect to
@@ -103,7 +104,7 @@ async function call_gpt(prompt: string) {
 	var options = url.parse(endpoint);
 
 	// create an instance of the `HttpsProxyAgent` class with the proxy server information
-	try{
+	try {
 		var agent = new HttpsProxyAgent(proxy);
 		options.agent = agent;
 		return new Promise((resolve, error) => {
@@ -127,11 +128,11 @@ async function call_gpt(prompt: string) {
 				//console.log(code);
 				return resolve(code);
 			}).catch(function (response) {
-				vscode.window.showInformationMessage('API call ERROR!');
-				return error("api error!");
+				vscode.window.showInformationMessage('Trying with proxy...');
 			});
 		});
-	}catch{
+	} catch {
+		vscode.window.showInformationMessage('Trying with proxy...');
 		return new Promise((resolve, error) => {
 			axios({
 				method: 'post',
@@ -156,8 +157,8 @@ async function call_gpt(prompt: string) {
 			});
 		});
 	}
-}	
+}
 
 
 
-export function deactivate() {}
+export function deactivate() { }
