@@ -2,17 +2,9 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
-import * as dotenv from "dotenv";
-import { arrayBuffer } from 'stream/consumers';
 import axios, { isCancel, AxiosError } from 'axios';
-import { resolve } from 'path';
-import * as child_process from 'child_process';
-import { start } from 'repl';
-
-dotenv.config();
 
 var url = require('url');
-var https = require('https');
 const HttpsProxyAgent = require('https-proxy-agent');
 const config = vscode.workspace.getConfiguration('gpt-coding');
 var api_key = config.get<String>("OPENAI-APIKEY");
@@ -124,9 +116,7 @@ async function call_gpt(prompt: string) {
 				proxy: false,
 				httpsAgent: agent
 			}).then(function (response) {
-				//console.log(String(response.data.choices[0].message.content).trim());
 				let code = response.data.choices[0].message.content.trim();
-				//console.log(code);
 				return resolve(code);
 			}).catch(function (response) {
 				vscode.window.showInformationMessage('Try using a proxy...');
@@ -147,11 +137,11 @@ async function call_gpt(prompt: string) {
 						model: "gpt-3.5-turbo",
 						messages: [{ "role": "user", "content": prompt }],
 						temperature: 0.7
+						//temperatureが低いほど、確率の高いトークンの確率が高くなることで、一貫性のある生成が期待できる
+						//temperatureが高いほど、確率の低いトークンの確率が高くなることで、多様性のある生成が期待できる
 					},
 				}).then(function (response) {
-					//console.log(String(response.data.choices[0].message.content).trim());
 					let code = response.data.choices[0].message.content.trim();
-					//console.log(code);
 					return resolve(code);
 				}).catch(function (response) {
 					return error(response);
@@ -163,7 +153,5 @@ async function call_gpt(prompt: string) {
 
 	}
 }
-
-
 
 export function deactivate() { }
