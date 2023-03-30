@@ -2,6 +2,9 @@
 
 ## 使い方
 
+**0.インストール**
+vscodeの拡張機能のメニューのvsixからのインストールでgpt-coding-x.x.x.vsixを指定
+
 **1.初期設定**  
   
 [OPENAI-API](https://openai.com/blog/openai-api)にアクセスし、アカウント作成  
